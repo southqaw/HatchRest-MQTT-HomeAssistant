@@ -1,0 +1,11 @@
+{
+	"~": "homeassistant/light/hatch-light",
+	"name": "Hatch Light",
+	"unique_id": "hatch_light",
+	"cmd_t": "~/set",
+	"stat_t": "~/state",
+	"schema": "json",
+	"brightness": true,
+	"color_mode": true,
+	"supported_color_modes": ["rgb"]
+}
