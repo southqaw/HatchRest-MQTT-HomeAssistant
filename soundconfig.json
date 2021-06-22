@@ -1,0 +1,11 @@
+{
+	"~": "homeassistant/fan/hatch-sound",
+	"name": "Hatch Sound",
+	"unique_id": "hatch_sound",
+	"cmd_t": "~/set",
+	"stat_t": "~/state",
+	"pct_cmd_t": "~/speed/percentage",
+	"pct_stat_t": "~/speed/percentage_state",
+	"spd_rng_min": 1,
+	"spd_rng_max": 100
+}
