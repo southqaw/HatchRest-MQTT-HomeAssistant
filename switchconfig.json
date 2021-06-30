@@ -1,0 +1,7 @@
+{
+	"~": "homeassistant/light/hatch-power",
+	"name": "Hatch Power",
+	"unique_id": "hatch_power",
+	"cmd_t": "~/set",
+	"stat_t": "~/state"
+}
