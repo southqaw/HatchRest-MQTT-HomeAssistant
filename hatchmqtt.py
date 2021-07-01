@@ -3,8 +3,10 @@ import json
 import configparser
 import argparse
 import hatchrestbluepy
-from hatchrestbluepy.constants import HatchRestSound as Sounds
+from hatchrestbluepy.constants import HatchRestSound
 from typing import List, Dict
+import time
+
 
 MQTT_CONFIG = "/opt/HatchMQTT/mqtt.ini"
 JSON_LOC = "/opt/HatchMQTT"
@@ -85,19 +87,19 @@ def ha_discover(client: mqtt.Client, userdata: HatchMQTT) -> None:
 def ha_update_states(client: mqtt.Client, userdata: HatchMQTT) -> None:
     volume = int((userdata.device.volume/255)*100)
     client.publish(userdata.states['sound_vol'], volume)
-    sound_state = 'ON' if userdata.device.sound != Sounds.none else 'OFF'
+    sound_state = 'OFF' if userdata.device.sound == 0 else 'ON'
     client.publish(userdata.states['sound'], sound_state)
     client.publish(userdata.states['light'], json.dumps(userdata.generate_light_schema()))
     power_state = 'ON' if userdata.device.power else 'OFF'
     client.publish(userdata.states['switch'], power_state)
 
 
-def on_connect(client: mqtt.Client, userdata: HatchMQTT, rc) -> None:
-    for topic in userdata.cmds.keys:
-        if 'cmd' in topic:
-            client.subscribe(userdata.cmds[topic])
+def on_connect(client: mqtt.Client, userdata: HatchMQTT, flags, rc) -> None:
+    for topic in userdata.cmds.keys():
+        client.subscribe(userdata.cmds[topic])
     ha_discover(client, userdata)
     ha_update_states(client, userdata)
+    print("Connected")
 
 
 def on_message(client: mqtt.Client, userdata: HatchMQTT, msg: mqtt.MQTTMessage) -> None:
@@ -105,50 +107,55 @@ def on_message(client: mqtt.Client, userdata: HatchMQTT, msg: mqtt.MQTTMessage) 
         if msg.topic == userdata.cmds['light']:
             userdata.set_light(msg.payload)
         elif msg.topic == userdata.cmds['sound']:
-            if msg.payload == "ON":
-                userdata.device.set_sound(Sounds.noise)
+            if msg.payload == b'ON':
+                userdata.device.set_sound(HatchRestSound.noise)
             else:
-                userdata.device.set_sound(Sounds.none)
+                userdata.device.set_sound(HatchRestSound.none)
         elif msg.topic == userdata.cmds['sound_vol']:
             userdata.device.set_volume(int((int(msg.payload)/100)*255))
     if msg.topic == userdata.cmds['switch']:
-        if msg.payload == "ON":
+        if msg.payload == b'ON':
             userdata.device.power_on()
         else:
             userdata.device.power_off()
+    userdata.device._refresh_data()
     ha_update_states(client, userdata)
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--config', default=MQTT_CONFIG, help="configuration file")
-    parser.add_argument('-v', '--verbose', action='store_true', help="verbose messages")
-    args = parser.parse_args()
+parser = argparse.ArgumentParser()
+parser.add_argument('-c', '--config', default=MQTT_CONFIG, help="configuration file")
+parser.add_argument('-v', '--verbose', action='store_true', help="verbose messages")
+args = parser.parse_args()
 
-    conf = configparser.ConfigParser()
-    conf.read(args.config)
+conf = configparser.ConfigParser()
+conf.read(args.config)
 
-    host = conf.get('mqtt', 'host')
-    port = int(conf.get('mqtt', 'port'))
+host = conf.get('mqtt', 'host')
+port = int(conf.get('mqtt', 'port'))
 
-    tries = 0
-    while tries < 3:
-        try:
-            hatch = HatchMQTT(conf['device']['addr'], conf['hass'])
-            break
-        except Exception:
-            tries = tries + 1
-    if tries == 3:
-        exit(1)
+tries = 0
+while tries < 5:
+    try:
+        hatch = HatchMQTT(conf['device']['addr'], conf['hass'])
+        break
+    except Exception:
+        tries = tries + 1
+        time.sleep(0.5)
+if tries == 5:
+    exit(1)
 
-    client = mqtt.Client(userdata=hatch)
-    client.on_connect = on_connect
-    client.on_message = on_message
+client = mqtt.Client(userdata=hatch)
+client.enable_logger()
+client.on_connect = on_connect
+client.on_message = on_message
 
-    client.connect(host, port)
+client.connect(host, port, 60)
 
-    client.loop_forever()
-
-
-if __name__ == "__main__":
-    main()
+client.loop_start()
+try:
+    while True:
+        ha_update_states(client, hatch)
+        time.sleep(2)
+except KeyboardInterrupt:
+    hatch.device.disconnect()
+    exit(0)
