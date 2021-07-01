@@ -129,7 +129,7 @@ def main() -> None:
     conf.read(args.config)
 
     host = conf.get('mqtt', 'host')
-    port = conf.get('mqtt', 'port')
+    port = int(conf.get('mqtt', 'port'))
 
     tries = 0
     while tries < 3:
