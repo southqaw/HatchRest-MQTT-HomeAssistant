@@ -14,3 +14,6 @@ sound_state=homeassistant/fan/hatch-sound/state
 sound_config=homeassistant/fan/hatch-sound/config
 sound_vol_cmd=homeassistant/fan/hatch-sound/speed/percentage
 sound_vol_state=homeassistant/fan/hatch-sound/speed/percentage_state
+
+[device]
+addr="00:00:00:00:00:00"

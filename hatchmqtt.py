@@ -11,8 +11,8 @@ JSON_LOC = "/opt/HatchMQTT"
 
 
 class HatchMQTT:
-    def __init__(self, topics: List):
-        self.device = hatchrestbluepy.HatchRest()
+    def __init__(self, addr: str, topics: List):
+        self.device = hatchrestbluepy.HatchRest(addr=addr)
         self._parse_topics(topics)
 
     def _parse_topics(self, topics: List) -> None:
@@ -134,7 +134,7 @@ def main() -> None:
     tries = 0
     while tries < 3:
         try:
-            hatch = HatchMQTT(conf['hass'])
+            hatch = HatchMQTT(conf['device']['addr'], conf['hass'])
             break
         except Exception:
             tries = tries + 1
