@@ -147,6 +147,7 @@ def main() -> None:
 
     client.connect(host, port)
 
+    client.loop_forever()
 
 if __name__ == "__main__":
     main()
