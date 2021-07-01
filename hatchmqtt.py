@@ -3,7 +3,7 @@ import json
 import configparser
 import argparse
 import hatchrestbluepy
-import hatchrestbluepy.constants.HatchRestSound as Sounds
+from hatchrestbluepy.constants import HatchRestSound as Sounds
 from typing import List, Dict
 
 MQTT_CONFIG = "/opt/HatchMQTT/mqtt.ini"
@@ -148,6 +148,7 @@ def main() -> None:
     client.connect(host, port)
 
     client.loop_forever()
+
 
 if __name__ == "__main__":
     main()
