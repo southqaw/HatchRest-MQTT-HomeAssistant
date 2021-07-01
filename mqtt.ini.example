@@ -1,3 +1,16 @@
 [mqtt]
 host=192.168.0.0
 port=1883
+
+[hass]
+switch_cmd=homeassistant/switch/hatch-power/set
+switch_state=homeassistant/switch/hatch-power/state
+switch_config=homeassistant/switch/hatch-power/config
+light_cmd=homeassistant/light/hatch-light/set
+light_state=homeassistant/light/hatch-light/state
+light_config=homeassistant/light/hatch-light/config
+sound_cmd=homeassistant/fan/hatch-sound/set
+sound_state=homeassistant/fan/hatch-sound/state
+sound_config=homeassistant/fan/hatch-sound/config
+sound_vol_cmd=homeassistant/fan/hatch-sound/speed/percentage
+sound_vol_state=homeassistant/fan/hatch-sound/speed/percentage_state
