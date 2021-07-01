@@ -85,7 +85,7 @@ def ha_discover(client: mqtt.Client, userdata: HatchMQTT) -> None:
 def ha_update_states(client: mqtt.Client, userdata: HatchMQTT) -> None:
     volume = int((userdata.device.volume/255)*100)
     client.publish(userdata.states['sound_vol'], volume)
-    sound_state = 'ON' if userdata.device.sound != 0 else 'OFF'
+    sound_state = 'ON' if userdata.device.sound != Sounds.none else 'OFF'
     client.publish(userdata.states['sound'], sound_state)
     client.publish(userdata.states['light'], json.dumps(userdata.generate_light_schema()))
     power_state = 'ON' if userdata.device.power else 'OFF'
@@ -142,8 +142,8 @@ def main() -> None:
         exit(1)
 
     client = mqtt.Client(userdata=hatch)
-    client.on_connect = on_connect()
-    client.on_message = on_message()
+    client.on_connect = on_connect
+    client.on_message = on_message
 
     client.connect(host, port)
 
