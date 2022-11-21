@@ -6,6 +6,7 @@ import hatchrestbluepy
 from hatchrestbluepy.constants import HatchRestSound
 from typing import List, Dict
 import time
+import os.path
 
 
 MQTT_CONFIG = "/opt/HatchMQTT/mqtt.ini"
@@ -132,6 +133,10 @@ parser.add_argument('-v', '--verbose', action='store_true', help="verbose messag
 args = parser.parse_args()
 
 conf = configparser.ConfigParser()
+
+if not os.path.exists(args.config):
+    raise FileNotFoundError(f'Config file: "{args.config}" does not exist')
+
 conf.read(args.config)
 
 host = conf.get('mqtt', 'host')
