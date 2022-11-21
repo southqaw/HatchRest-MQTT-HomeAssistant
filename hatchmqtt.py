@@ -103,7 +103,15 @@ def on_connect(client: mqtt.Client, userdata: HatchMQTT, flags, rc) -> None:
 
 
 def on_message(client: mqtt.Client, userdata: HatchMQTT, msg: mqtt.MQTTMessage) -> None:
-    if userdata.device.power:
+    if msg.topic == userdata.cmds['switch']:
+        if msg.payload == b'ON':
+            if not userdata.device.connected:
+                userdata.device.connect()
+            userdata.device.power_on()
+        else:
+            userdata.device.power_off()
+            userdata.device.disconnect()
+    elif userdata.device.power:
         if msg.topic == userdata.cmds['light']:
             userdata.set_light(msg.payload)
         elif msg.topic == userdata.cmds['sound']:
@@ -113,12 +121,8 @@ def on_message(client: mqtt.Client, userdata: HatchMQTT, msg: mqtt.MQTTMessage) 
                 userdata.device.set_sound(HatchRestSound.none)
         elif msg.topic == userdata.cmds['sound_vol']:
             userdata.device.set_volume(int((int(msg.payload)/100)*255))
-    if msg.topic == userdata.cmds['switch']:
-        if msg.payload == b'ON':
-            userdata.device.power_on()
-        else:
-            userdata.device.power_off()
-    userdata.device._refresh_data()
+    if userdata.device.connected:
+        userdata.device._refresh_data()
     ha_update_states(client, userdata)
 
 
@@ -134,6 +138,7 @@ host = conf.get('mqtt', 'host')
 port = int(conf.get('mqtt', 'port'))
 
 tries = 0
+hatch = None
 while tries < 5:
     try:
         hatch = HatchMQTT(conf['device']['addr'], conf['hass'])
