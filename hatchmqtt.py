@@ -139,8 +139,11 @@ if not os.path.exists(args.config):
 
 conf.read(args.config)
 
+client_id = conf.get('mqtt', 'client_id')
 host = conf.get('mqtt', 'host')
 port = int(conf.get('mqtt', 'port'))
+username = conf.get('mqtt', 'username')
+password = conf.get('mqtt', 'password')
 
 tries = 0
 hatch = None
@@ -154,10 +157,13 @@ while tries < 5:
 if tries == 5:
     exit(1)
 
-client = mqtt.Client(userdata=hatch)
+client = mqtt.Client(client_id=client_id, userdata=hatch)
 client.enable_logger()
 client.on_connect = on_connect
 client.on_message = on_message
+
+if username and password:
+    client.username_pw_set(username, password)
 
 client.connect(host, port, 60)
 
